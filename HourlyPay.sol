@@ -24,7 +24,8 @@ pragma experimental "v0.5.0";
 //
 //      - setBeginTimeTS(utcTimestamp) - Work on contract can be started after this timestamp (default is contract creation time).
 //                                       Also defines the start of Day and Week for accounting and daily limits.
-//                                       Day transition time should be convenient for the employee (like 4am), so that work doesn't cross between days,
+//                                       Day transition time should be convenient for the employee (like 4am),
+//                                       so that work doesn't cross between days,
 //                                       The excess won't be transferred to the next day.
 //
 //  4. Client hires the Employee by invoking hire(addressOfEmployee, ratePerHourInWei)
@@ -38,14 +39,16 @@ pragma experimental "v0.5.0";
 //      invoke stopWork() when he finishes working to stop the timer.
 //
 //    After the timer is stopped - the ETH earnings are calculated and recorded on Employee's internal balance.
-//    If the stopWork() is invoked after more hours had passed than dailyLimit - the excess is ignored and only the dailyLimit is added to the internal balance.
+//    If the stopWork() is invoked after more hours had passed than dailyLimit - the excess is ignored
+//    and only the dailyLimit is added to the internal balance.
 //
 //  6. Employee can withdraw earnings from internal balance after paydayFrequencyInDays days have passed after BeginTimeTS:
 //      by invoking withdraw()
 //
 //    After each withdrawal the paydayFrequencyInDays is reset and starts counting itself from the TS of withdrawal.
 //
-//    This delay is implemented as a safety mechanism, so the Client can have time to check the work and cancel the earnings if something goes wrong.
+//    This delay is implemented as a safety mechanism, so the Client can have time to check the work and
+//    cancel the earnings if something goes wrong.
 //    That way only money earned during the last paydayFrequencyInDays is at risk.
 //
 //  7. Client can fire() the Employee after his services are no longer needed.
