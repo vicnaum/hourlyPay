@@ -207,7 +207,7 @@ contract HourlyPay {
     }
     
     function isOvertime() external view returns(bool) {
-        if (workedTodayInSeconds + getWorkSecondsInProgress() > dailyHourLimit) return true;
+        if (workedTodayInSeconds + getWorkSecondsInProgress() > dailyHourLimit * 1 hours) return true;
         return false;
     }
     
