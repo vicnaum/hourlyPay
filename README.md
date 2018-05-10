@@ -61,4 +61,9 @@ The Hourly Pay Contract allows you to track your time and get paid a hourly wage
   9. Client can withdraw any excess ETH from the contract via:
       - clientWithdrawAll() - withdraws all funds minus locked in earnings.
       - clientWithdraw(amount) - withdraws (amount), not locked in earnings.
-    Can be invoked only if Employee isn't hired or has been fired.
+     Can be invoked only if Employee isn't hired or has been fired.
+
+ 10. Client and Contract Ownership can be made "Public"/"None" by calling:
+      - releaseOwnership()
+     It simply sets the Owner (Client) to 0x0, so no one is in control of the contract anymore.
+     That way the contract can be used on projects as Hourly-Wage Donations.
