@@ -1,5 +1,5 @@
 # hourlyPay
-HourlyPay Ethereum Solidity Contract
+Ethereum Solidity Contract for Hourly Wage payments
 
 The Hourly Pay Contract allows you to track your time and get paid a hourly wage for tracked time.
 
