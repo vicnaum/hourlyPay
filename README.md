@@ -1,8 +1,11 @@
 # HourlyPay - Ethereum Solidity Contract for Hourly Wage payments
+v0.2 - MVP ready to test
+
+--
 
 The Hourly Pay Contract allows you to track your time and get paid a hourly wage for tracked time.
 
- HOW IT WORKS:
+ **HOW IT WORKS:
 
   1. Client creates the contract, making himself the owner of the contract.
 
