@@ -212,7 +212,8 @@ contract HourlyPay {
     }
     
     function hasEnoughFundsToStart() public view returns(bool) {
-        return ((address(this).balance > earnings) && (address(this).balance - earnings >= ratePerHourInWei * (dailyHourLimit * 1 hours - (isNewDay() ? 0 : workedTodayInSeconds)) / 1 hours));
+        return ((address(this).balance > earnings) &&
+                (address(this).balance - earnings >= ratePerHourInWei * (dailyHourLimit * 1 hours - (isNewDay() ? 0 : workedTodayInSeconds)) / 1 hours));
     }
     
     function isNewDay() public view returns(bool) {
@@ -220,15 +221,26 @@ contract HourlyPay {
     }
     
     function canStartWork() public view returns(bool) {
-        return (hired && !working && (now > beginTimeTS) && (now < beginTimeTS + (contractDurationInDays * 1 days)) && hasEnoughFundsToStart() && ((workedTodayInSeconds < dailyHourLimit * 1 hours) || isNewDay()));
+        return (hired
+            && !working
+            && (now > beginTimeTS)
+            && (now < beginTimeTS + (contractDurationInDays * 1 days))
+            && hasEnoughFundsToStart()
+            && ((workedTodayInSeconds < dailyHourLimit * 1 hours) || isNewDay()));
     }
 
     function canStopWork() external view returns(bool) {
-        return (working && hired && (now > startedWorkTS));
+        return (working
+            && hired
+            && (now > startedWorkTS));
     }
 
     function currentTime() external view returns(uint) {
         return now;
+    }
+
+    function getBalance() external view returns(uint) {
+        return address(this).balance;
     }
 
     ////////////////////////////
@@ -240,7 +252,9 @@ contract HourlyPay {
 
     function hire(address newEmployeeAddress, uint newRatePerHourInWei) external onlyOwner beforeHire {
         require(newEmployeeAddress != 0x0);                     // Protection from burning the ETH
-        require(address(this).balance >= newRatePerHourInWei * dailyHourLimit);  // Contract should be loaded with ETH for a minimum one day balance to perform Hire
+
+        // Contract should be loaded with ETH for a minimum one day balance to perform Hire:
+        require(address(this).balance >= newRatePerHourInWei * dailyHourLimit);
         employeeAddress = newEmployeeAddress;
         ratePerHourInWei = newRatePerHourInWei;
         
@@ -260,7 +274,9 @@ contract HourlyPay {
         require(workedTodayInSeconds < dailyHourLimit * 1 hours); // can't start if already approached dailyHourLimit
 
         require(address(this).balance > earnings); // balance must be greater than earnings        
-        require(address(this).balance - earnings >= ratePerHourInWei * (dailyHourLimit * 1 hours - workedTodayInSeconds) / 1 hours); // balance minus earnings must be sufficient for at least 1 day of work minus workedTodayInSeconds
+
+        // balance minus earnings must be sufficient for at least 1 day of work minus workedTodayInSeconds:
+        require(address(this).balance - earnings >= ratePerHourInWei * (dailyHourLimit * 1 hours - workedTodayInSeconds) / 1 hours);
         
         if (earnings == 0) lastPaydayTS = now; // reset the payday timer TS if this is the first time work starts after last payday
 
