@@ -3,14 +3,14 @@ pragma experimental "v0.5.0";
 ////////////////////
 //   HOURLY PAY   //
 //    CONTRACT    //
-//     v 0.1      //
+//     v 0.2      //
 ////////////////////
 
 // The Hourly Pay Contract allows you to track your time and get paid a hourly wage for tracked time.
 //
 // HOW IT WORKS:
 //
-//  1. Client creates the contract with contractor, making the client the owner of the contract.
+//  1. Client creates the contract, making himself the owner of the contract.
 //
 //  2. Client can fund the contract with ETH by simply sending money to the contract (via payable fallback function).
 //
@@ -30,7 +30,7 @@ pragma experimental "v0.5.0";
 //
 //  4. Client hires the Employee by invoking hire(addressOfEmployee, ratePerHourInWei)
 //     This starts the project and puts the contract in a workable state.
-//     Contract has to be loaded with enough ETH to provide at least one day of work at specified ratePerHourInWei
+//     Before hiring, contract should be loaded with enough ETH to provide at least one day of work at specified ratePerHourInWei
 // 
 //  5. To start work and earn ETH the Employee should:
 //
@@ -45,7 +45,7 @@ pragma experimental "v0.5.0";
 //  6. Employee can withdraw earnings from internal balance after paydayFrequencyInDays days have passed after BeginTimeTS:
 //      by invoking withdraw()
 //
-//    After each withdrawal the paydayFrequencyInDays is reset and starts counting itself from the TS of withdrawal.
+//    After each withdrawal the paydayFrequencyInDays is reset and starts counting itself from the TS of the first startWork() after withdrawal.
 //
 //    This delay is implemented as a safety mechanism, so the Client can have time to check the work and
 //    cancel the earnings if something goes wrong.
@@ -55,13 +55,16 @@ pragma experimental "v0.5.0";
 //    That would stop any ongoing work by terminating the timer and won't allow to start the work again.
 //
 //  8. If anything in the relationship or hour counting goes wrong, there are safety functions:
-//      - refund() - terminates all unwithdrawn earnings.
+//      - refundAll() - terminates all unwithdrawn earnings.
 //      - refund(amount) - terminates the (amount) of unwithdrawn earnings.
+//    Can be only called if not working.
 //    Both of these can be called by Client or Employee.
-//    Still need to think if allowing Client to do that won't hurt the Employee.
+//      * TODO: Still need to think if allowing Client to do that won't hurt the Employee.
+//      * TODO: SecondsWorkedToday don't reset after refund, so dailyLimit still affects
+//      * TODO: Think of a better name. ClearEarnings?
 //
 //  9. Client can withdraw any excess ETH from the contract via:
-//      - clientWithdraw() - withdraws all funds minus locked in earnings.
+//      - clientWithdrawAll() - withdraws all funds minus locked in earnings.
 //      - clientWithdraw(amount) - withdraws (amount), not locked in earnings.
 //    Can be invoked only if Employee isn't hired or has been fired.
 ////////////////////////////////////////////////////////////////////////////////
@@ -78,23 +81,23 @@ contract HourlyPay {
     /////////////////////////////////
     // Contract business properties
     
-    uint beginTimeTS;               // When the contract work can be started. Also TS of day transition.
-    uint ratePerHourInWei;          // Employee rate in wei
-    uint earnings = 0;              // Earnings of employee
-    bool hired = false;             // If the employee is hired and approved to perform work
-    bool working = false;           // Is employee currently working with timer on?
-    uint startedWorkTS;             // Timestamp of when the timer started counting time
-    uint workedTodayInSeconds = 0;  // How many seconds worked today
-    uint currentDayTS;
-    uint lastPaydayTS;
+    uint public beginTimeTS;               // When the contract work can be started. Also TS of day transition.
+    uint public ratePerHourInWei;          // Employee rate in wei
+    uint public earnings = 0;              // Earnings of employee
+    bool public hired = false;             // If the employee is hired and approved to perform work
+    bool public working = false;           // Is employee currently working with timer on?
+    uint public startedWorkTS;             // Timestamp of when the timer started counting time
+    uint public workedTodayInSeconds = 0;  // How many seconds worked today
+    uint public currentDayTS;
+    uint public lastPaydayTS;
 
 
     ////////////////////////////////
     // Contract Limits and maximums
     
-    uint16 contractDurationInDays = 365;  // Overall contract duration in days, default is 365 and it's also maximum for safety reasons
-    uint8 dailyHourLimit = 8;               // Limits the hours per day, max 24 hours
-    uint8 paydayFrequencyInDays = 3;       // How often can Withdraw be called, default is every 3 days
+    uint16 public contractDurationInDays = 365;  // Overall contract duration in days, default is 365 and it's also maximum for safety reasons
+    uint8 public dailyHourLimit = 8;               // Limits the hours per day, max 24 hours
+    uint8 public paydayFrequencyInDays = 3;       // How often can Withdraw be called, default is every 3 days
 
     uint8 constant hoursInWeek = 168;
     uint8 constant maxDaysInFrequency = 30; // every 30 days is a wise maximum
@@ -139,19 +142,19 @@ contract HourlyPay {
     ///////////
     // Events
     
-    event GotFunds(address indexed sender, uint indexed amount, uint indexed totalBalance);
-    event ContractDurationInDaysChanged(uint16 indexed contractDurationInDays);
-    event DailyHourLimitChanged(uint8 indexed dailyHourLimit);
-    event PaydayFrequencyInDaysChanged(uint32 indexed paydayFrequencyInDays);
-    event BeginTimeTSChanged(uint indexed beginTimeTS);
-    event Hired(address indexed employeeAddress, uint indexed ratePerHourInWei, uint indexed hiredTS);
-    event NewDay(uint indexed currentDayTS, uint16 indexed contractDaysLeft);
-    event StartedWork(uint indexed startedWorkTS, uint indexed workedTodayInSeconds);
-    event StoppedWork(uint indexed stoppedWorkTS, uint workedInSeconds, uint earned);
-    event Withdrawal(uint indexed amount, address indexed employeeAddress, uint indexed withdrawalTS);
-    event Fired(address indexed employeeAddress, uint indexed firedTS);
-    event Refunded(uint indexed amount, address indexed whoInitiatedRefund, uint indexed refundTS);
-    event ClientWithdrawal(uint indexed amount, uint indexed clientWithdrawalTS);
+    event GotFunds(address sender, uint amount, uint totalBalance);
+    event ContractDurationInDaysChanged(uint16 contractDurationInDays);
+    event DailyHourLimitChanged(uint8 dailyHourLimit);
+    event PaydayFrequencyInDaysChanged(uint32 paydayFrequencyInDays);
+    event BeginTimeTSChanged(uint beginTimeTS);
+    event Hired(address employeeAddress, uint ratePerHourInWei, uint hiredTS);
+    event NewDay(uint currentDayTS, uint16 contractDaysLeft);
+    event StartedWork(uint startedWorkTS, uint workedTodayInSeconds);
+    event StoppedWork(uint stoppedWorkTS, uint workedInSeconds, uint earned);
+    event Withdrawal(uint amount, address employeeAddress, uint withdrawalTS);
+    event Fired(address employeeAddress, uint firedTS);
+    event Refunded(uint amount, address whoInitiatedRefund, uint refundTS);
+    event ClientWithdrawal(uint amount, uint clientWithdrawalTS);
     
     ////////////////////////////////////////////////
     // Fallback function to fund contract with ETH
@@ -161,8 +164,8 @@ contract HourlyPay {
     }
     
     
-    ////////////
-    // Setters
+    ///////////////////////////
+    // Main Setters
 
     function setContractDurationInDays(uint16 newContractDurationInDays) external onlyOwner beforeHire {
         require(newContractDurationInDays < 365);
@@ -181,24 +184,57 @@ contract HourlyPay {
         paydayFrequencyInDays = newPaydayFrequencyInDays;
         emit PaydayFrequencyInDaysChanged(paydayFrequencyInDays);
     }
-
+    
     function setBeginTimeTS(uint newBeginTimeTS) external onlyOwner beforeHire {
         beginTimeTS = newBeginTimeTS;
         currentDayTS = beginTimeTS;
         lastPaydayTS = beginTimeTS;
         emit BeginTimeTSChanged(beginTimeTS);
     }
-
     
+    ///////////////////
+    // Helper getters
+    
+    function getWorkSecondsInProgress() public view returns(uint) {
+        if (!working) return 0;
+        return now - startedWorkTS;
+    }
+    
+    function isOvertime() external view returns(bool) {
+        if (workedTodayInSeconds + getWorkSecondsInProgress() > dailyHourLimit) return true;
+        return false;
+    }
+    
+    function hasEnoughFundsToStart() public view returns(bool) {
+        return ((address(this).balance > earnings) && (address(this).balance - earnings >= ratePerHourInWei * (dailyHourLimit * 1 hours - (isNewDay() ? 0 : workedTodayInSeconds)) / 1 hours));
+    }
+    
+    function isNewDay() public view returns(bool) {
+        return (now - currentDayTS > 1 days);
+    }
+    
+    function canStartWork() public view returns(bool) {
+        return (hired && !working && (now > beginTimeTS) && (now < beginTimeTS + (contractDurationInDays * 1 days)) && hasEnoughFundsToStart() && ((workedTodayInSeconds < dailyHourLimit * 1 hours) || isNewDay()));
+    }
+
+    function canStopWork() external view returns(bool) {
+        return (working && hired && (now > startedWorkTS));
+    }
+
+    function currentTime() external view returns(uint) {
+        return now;
+    }
+
     ////////////////////////////
     // Main workflow functions
 
     function hire(address newEmployeeAddress, uint newRatePerHourInWei) external onlyOwner beforeHire {
         require(newEmployeeAddress != 0x0);                     // Protection from burning the ETH
-        require(address(this).balance >= newRatePerHourInWei * dailyHourLimit);  // Should have minimum one day balance to hire
+        require(address(this).balance >= newRatePerHourInWei * dailyHourLimit);  // Contract should be loaded with ETH for a minimum one day balance to perform Hire
         employeeAddress = newEmployeeAddress;
         ratePerHourInWei = newRatePerHourInWei;
         
+        hired = true;
         emit Hired(employeeAddress, ratePerHourInWei, now);
     }
 
@@ -216,6 +252,8 @@ contract HourlyPay {
         require(address(this).balance > earnings); // balance must be greater than earnings        
         require(address(this).balance - earnings >= ratePerHourInWei * (dailyHourLimit * 1 hours - workedTodayInSeconds) / 1 hours); // balance minus earnings must be sufficient for at least 1 day of work minus workedTodayInSeconds
         
+        if (earnings == 0) lastPaydayTS = now; // reset the payday timer TS if this is the first time work starts after last payday
+
         startedWorkTS = now;
         working = true;
         
@@ -227,13 +265,13 @@ contract HourlyPay {
             while (currentDayTS < now) {
                 currentDayTS += 1 days;
             }
+            currentDayTS -= 1 days;
             workedTodayInSeconds = 0;
             emit NewDay(currentDayTS, uint16 ((beginTimeTS + (contractDurationInDays * 1 days) - currentDayTS) / 1 days));
         }
     }
     
     function stopWork() external onlyEmployee {
- 
         stopWorkInternal();
     }
     
@@ -249,15 +287,14 @@ contract HourlyPay {
             newWorkedTodayInSeconds = dailyHourLimit * 1 hours;   // and assign max dailyHourLimit if there is an overflow
         }
         
-        uint earned = (newWorkedTodayInSeconds - workedTodayInSeconds) * ratePerHourInWei;
+        uint earned = (newWorkedTodayInSeconds - workedTodayInSeconds) * ratePerHourInWei / 1 hours;
         earnings += earned; // add new earned ETH to earnings
         
+        emit StoppedWork(now, newWorkedTodayInSeconds - workedTodayInSeconds, earned);
+
         workedTodayInSeconds = newWorkedTodayInSeconds; // updated todays works in seconds
-        
         working = false;
 
-        emit StoppedWork(now, newWorkedTodayInSeconds - workedTodayInSeconds, earned);
-        
         checkForNewDay();
     }
 
@@ -285,7 +322,8 @@ contract HourlyPay {
         emit Fired(employeeAddress, now);
     }
 
-    function refund() external onlyOwnerOrEmployee {    // terminates all unwithdrawn earnings.
+    function refundAll() external onlyOwnerOrEmployee {    // terminates all unwithdrawn earnings.
+        require(working == false);
         require(earnings > 0);
         uint amount = earnings;
         earnings = 0;
@@ -294,13 +332,15 @@ contract HourlyPay {
     }
     
     function refund(uint amount) external onlyOwnerOrEmployee {  // terminates the (amount) of unwithdrawn earnings.
+        require(working == false);
         require(amount < earnings);
         earnings -= amount;
 
         emit Refunded(amount, msg.sender, now);
     }
 
-    function clientWithdraw() external onlyOwner { // withdraws all funds minus locked in earnings.
+    function clientWithdrawAll() external onlyOwner { // withdraws all funds minus locked in earnings.
+        require(hired == false);
         require(address(this).balance > earnings);
         uint amount = address(this).balance - earnings;
         
@@ -310,6 +350,7 @@ contract HourlyPay {
     }
     
     function clientWithdraw(uint amount) external onlyOwner { // withdraws (amount), if not locked in earnings.
+        require(hired == false);
         require(address(this).balance > earnings);
         require(amount < address(this).balance);
         require(address(this).balance - amount > earnings);
@@ -318,6 +359,4 @@ contract HourlyPay {
 
         emit ClientWithdrawal(amount, now);
     }
-
-
 }
