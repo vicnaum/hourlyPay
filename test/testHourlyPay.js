@@ -140,6 +140,31 @@ contract("HourlyPay", accounts => {
     assert.isBelow(await hourlyPay.earnings.call(), 2*rate*1.01);
   })
 
+  it("can work out all dailyLimit without problems and with (dailyLimit) funds", async () => {
+    let testAmount = ether(0.8);
+    await hourlyPay.sendTransaction({from: owner, value: testAmount});
+    await hourlyPay.hire(employee, rate, {from: owner});
+    await increaseTimeTo(latestTime() + duration.minutes(1));
+    await hourlyPay.startWork({from: employee});
+    await increaseTimeTo(latestTime() + duration.hours(2));
+    await hourlyPay.stopWork({from: employee});
+    await increaseTimeTo(latestTime() + duration.hours(1));
+    await hourlyPay.startWork({from: employee});
+    await increaseTimeTo(latestTime() + duration.hours(2));
+    await hourlyPay.stopWork({from: employee});
+    await increaseTimeTo(latestTime() + duration.hours(1));
+    await hourlyPay.startWork({from: employee});
+    await increaseTimeTo(latestTime() + duration.hours(3));
+    await hourlyPay.stopWork({from: employee});
+    await increaseTimeTo(latestTime() + duration.hours(1));
+    await hourlyPay.startWork({from: employee});
+    await increaseTimeTo(latestTime() + duration.hours(1));
+    await hourlyPay.stopWork({from: employee});
+
+    assert.isAbove(await hourlyPay.earnings.call(), 8*rate*0.99);
+    assert.isBelow(await hourlyPay.earnings.call(), 8*rate*1.01);
+  })
+
   it("can't earn more than dailyHourLimit", async () => {
     let testAmount = ether(1);
     await hourlyPay.sendTransaction({from: owner, value: testAmount});

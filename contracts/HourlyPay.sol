@@ -148,7 +148,7 @@ contract HourlyPay {
     ///////////
     // Events
     
-    event GotFunds(address sender, uint amount, uint totalBalance);
+    event GotFunds(address sender, uint amount);
     event ContractDurationInDaysChanged(uint16 contractDurationInDays);
     event DailyHourLimitChanged(uint8 dailyHourLimit);
     event PaydayFrequencyInDaysChanged(uint32 paydayFrequencyInDays);
@@ -166,7 +166,7 @@ contract HourlyPay {
     // Fallback function to fund contract with ETH
     
     function () external payable {
-        emit GotFunds(msg.sender, msg.value, address(this).balance);
+        emit GotFunds(msg.sender, msg.value);
     }
     
     
