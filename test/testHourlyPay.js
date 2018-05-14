@@ -117,7 +117,7 @@ contract("HourlyPay", accounts => {
     await hourlyPay.sendTransaction({from: owner, value: testAmount});
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(1));
     await hourlyPay.stopWork({from: employee});
     assert.isAbove(await hourlyPay.earnings.call(), rate*0.99);
@@ -129,11 +129,11 @@ contract("HourlyPay", accounts => {
     await hourlyPay.sendTransaction({from: owner, value: testAmount});
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(1));
     await hourlyPay.stopWork({from: employee});
     await increaseTimeTo(latestTime() + duration.hours(2));
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(1));
     await hourlyPay.stopWork({from: employee});
     assert.isAbove(await hourlyPay.earnings.call(), 2*rate*0.99);
@@ -145,19 +145,19 @@ contract("HourlyPay", accounts => {
     await hourlyPay.sendTransaction({from: owner, value: testAmount});
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(2));
     await hourlyPay.stopWork({from: employee});
     await increaseTimeTo(latestTime() + duration.hours(1));
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(2));
     await hourlyPay.stopWork({from: employee});
     await increaseTimeTo(latestTime() + duration.hours(1));
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(3));
     await hourlyPay.stopWork({from: employee});
     await increaseTimeTo(latestTime() + duration.hours(1));
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(1));
     await hourlyPay.stopWork({from: employee});
 
@@ -170,7 +170,7 @@ contract("HourlyPay", accounts => {
     await hourlyPay.sendTransaction({from: owner, value: testAmount});
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(9));
     await hourlyPay.stopWork({from: employee});
     //console.log(web3.fromWei(await hourlyPay.earnings.call()).toNumber());
@@ -182,7 +182,7 @@ contract("HourlyPay", accounts => {
     await hourlyPay.sendTransaction({from: owner, value: testAmount});
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.days(3) + duration.hours(5) + duration.minutes(20));
     await hourlyPay.stopWork({from: employee});
     assert.equal(await hourlyPay.earnings.call(), rate*(await hourlyPay.dailyHourLimit.call()));
@@ -194,7 +194,7 @@ contract("HourlyPay", accounts => {
     await hourlyPay.sendTransaction({from: owner, value: testAmount});
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(1));
     await hourlyPay.fire({from: owner});
     assert.isFalse(await hourlyPay.hired.call());
@@ -207,7 +207,7 @@ contract("HourlyPay", accounts => {
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
 
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(1));
     await hourlyPay.stopWork({from: employee});
 
@@ -215,7 +215,7 @@ contract("HourlyPay", accounts => {
     await hourlyPay.fire({from: owner});
     
     try {
-      await hourlyPay.startWork({from: employee});
+      await hourlyPay.startWork("test startWork", {from: employee});
       assert.fail();
     } catch (err) {
       assert.ok(/revert/.test(err.message));
@@ -233,7 +233,7 @@ contract("HourlyPay", accounts => {
 
     await increaseTimeTo(latestTime() + duration.minutes(1));
 
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
 
     await increaseTimeTo(latestTime() + duration.hours(5));
 
@@ -261,7 +261,7 @@ contract("HourlyPay", accounts => {
 
     await increaseTimeTo(latestTime() + duration.minutes(1));
 
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
 
     await increaseTimeTo(latestTime() + duration.hours(4));
 
@@ -285,7 +285,7 @@ contract("HourlyPay", accounts => {
     await increaseTimeTo(latestTime() + duration.minutes(1));
 
     try {
-      await hourlyPay.startWork({from: employee});
+      await hourlyPay.startWork("test startWork", {from: employee});
       assert.fail();
     } catch (err) {
       assert.ok(/revert/.test(err.message));
@@ -304,7 +304,7 @@ contract("HourlyPay", accounts => {
     await increaseTimeTo(latestTime() + duration.days(4));
 
     try {
-      await hourlyPay.startWork({from: employee});
+      await hourlyPay.startWork("test startWork", {from: employee});
       assert.fail();
     } catch (err) {
       assert.ok(/revert/.test(err.message));
@@ -316,11 +316,11 @@ contract("HourlyPay", accounts => {
     await hourlyPay.sendTransaction({from: owner, value: testAmount});
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(1));
 
     try {
-      await hourlyPay.startWork({from: employee});
+      await hourlyPay.startWork("test startWork", {from: employee});
       assert.fail();
     } catch (err) {
       assert.ok(/revert/.test(err.message));
@@ -346,7 +346,7 @@ contract("HourlyPay", accounts => {
     await hourlyPay.sendTransaction({from: owner, value: testAmount});
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(1));
     await hourlyPay.stopWork({from: employee});
     assert.isAbove(await hourlyPay.earnings.call(), rate*0.99);
@@ -372,7 +372,7 @@ contract("HourlyPay", accounts => {
 
     // work for 5 hours
 
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(5));
     await hourlyPay.stopWork({from: employee});
     
@@ -407,7 +407,7 @@ contract("HourlyPay", accounts => {
 
     // work for 5 hours
 
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(5));
     await hourlyPay.stopWork({from: employee});
     
@@ -434,7 +434,7 @@ contract("HourlyPay", accounts => {
 
     // work again for 6 hours
 
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(6));
     await hourlyPay.stopWork({from: employee});
 
@@ -480,7 +480,7 @@ contract("HourlyPay", accounts => {
     await increaseTimeTo(latestTime() + duration.minutes(1));
 
     // work for 7 hours
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(7));
     await hourlyPay.stopWork({from: employee});
     
@@ -505,7 +505,7 @@ contract("HourlyPay", accounts => {
     // work for 6 hours in day 2
     await increaseTimeTo(latestTime() + duration.minutes(1));
 
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(6));
     await hourlyPay.stopWork({from: employee});
 
@@ -541,7 +541,7 @@ contract("HourlyPay", accounts => {
     await increaseTimeTo(latestTime() + duration.hours(16));
 
     // work for 8 hours
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(8));
     await hourlyPay.stopWork({from: employee});
     
@@ -567,7 +567,7 @@ contract("HourlyPay", accounts => {
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
 
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(8));
     await hourlyPay.stopWork({from: employee});
 
@@ -604,7 +604,7 @@ contract("HourlyPay", accounts => {
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
 
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(8));
     await hourlyPay.stopWork({from: employee});
 
@@ -626,7 +626,7 @@ contract("HourlyPay", accounts => {
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
 
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(8));
     await hourlyPay.stopWork({from: employee});
 
@@ -652,7 +652,7 @@ contract("HourlyPay", accounts => {
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
 
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(8));
     await hourlyPay.stopWork({from: employee});
 
@@ -689,7 +689,7 @@ contract("HourlyPay", accounts => {
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
 
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(8));
     await hourlyPay.stopWork({from: employee});
 
@@ -711,7 +711,7 @@ contract("HourlyPay", accounts => {
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
 
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(8));
     await hourlyPay.stopWork({from: employee});
 
@@ -737,7 +737,7 @@ contract("HourlyPay", accounts => {
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
 
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(8));
     await hourlyPay.stopWork({from: employee});
 
@@ -761,7 +761,7 @@ contract("HourlyPay", accounts => {
     await hourlyPay.hire(employee, rate, {from: owner});
     await increaseTimeTo(latestTime() + duration.minutes(1));
 
-    await hourlyPay.startWork({from: employee});
+    await hourlyPay.startWork("test startWork", {from: employee});
     await increaseTimeTo(latestTime() + duration.hours(8));
     await hourlyPay.stopWork({from: employee});
 

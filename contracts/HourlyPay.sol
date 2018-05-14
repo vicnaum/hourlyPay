@@ -155,7 +155,7 @@ contract HourlyPay {
     event BeginTimeTSChanged(uint beginTimeTS);
     event Hired(address employeeAddress, uint ratePerHourInWei, uint hiredTS);
     event NewDay(uint currentDayTS, uint16 contractDaysLeft);
-    event StartedWork(uint startedWorkTS, uint workedTodayInSeconds);
+    event StartedWork(uint startedWorkTS, uint workedTodayInSeconds, string comment);
     event StoppedWork(uint stoppedWorkTS, uint workedInSeconds, uint earned);
     event Withdrawal(uint amount, address employeeAddress, uint withdrawalTS);
     event Fired(address employeeAddress, uint firedTS);
@@ -262,7 +262,7 @@ contract HourlyPay {
         emit Hired(employeeAddress, ratePerHourInWei, now);
     }
 
-    function startWork() external onlyEmployee {
+    function startWork(string comment) external onlyEmployee {
         require(hired == true);
         require(working == false);
         
@@ -283,7 +283,7 @@ contract HourlyPay {
         startedWorkTS = now;
         working = true;
         
-        emit StartedWork(startedWorkTS, workedTodayInSeconds);
+        emit StartedWork(startedWorkTS, workedTodayInSeconds, comment);
     }
     
     function checkForNewDay() internal {
