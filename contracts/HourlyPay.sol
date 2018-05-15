@@ -3,7 +3,7 @@ pragma experimental "v0.5.0";
 ////////////////////
 //   HOURLY PAY   //
 //    CONTRACT    //
-//     v 0.2      //
+//    v 0.2.1     //
 ////////////////////
 
 // The Hourly Pay Contract allows you to track your time and get paid a hourly wage for tracked time.
@@ -344,6 +344,15 @@ contract HourlyPay {
         employeeAddress.transfer(amountToWithdraw);
         
         emit Withdrawal(amountToWithdraw, employeeAddress, now);
+    }
+    
+    function withdrawAfterEnd() external onlyEmployee {
+        require(owner == 0x0); // only if there's no owner
+        require(now > beginTimeTS + (contractDurationInDays * 1 days)); // only after contract end
+        require(address(this).balance > 0); // only if there's balance
+
+        employeeAddress.transfer(address(this).balance);
+        emit Withdrawal(address(this).balance, employeeAddress, now);
     }
     
     function fire() external onlyOwner {
