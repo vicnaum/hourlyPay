@@ -63,3 +63,5 @@ package-lock.json
 session.session
 
 build/
+conf.js
+pages/

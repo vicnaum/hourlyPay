@@ -40,7 +40,7 @@ contract("HourlyPay", accounts => {
   it("sets an owner", async () => {
     assert.equal(await hourlyPay.owner.call(), owner);
   });
-
+  
   it("accepts funds", async () => {
     let testAmount = ether(1);
     await hourlyPay.sendTransaction({from: owner, value: testAmount});
@@ -220,6 +220,11 @@ contract("HourlyPay", accounts => {
     } catch (err) {
       assert.ok(/revert/.test(err.message));
     }
+  })
+
+  it("can set a new contract name", async () => {
+    await hourlyPay.setContractName("New Name", {from: owner});
+    assert.equal(await hourlyPay.contractName.call(), "New Name");
   })
 
   it("can set dailyHourLimit to 2 hours", async () => {

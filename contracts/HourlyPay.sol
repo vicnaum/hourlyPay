@@ -96,7 +96,7 @@ contract HourlyPay {
     uint public workedTodayInSeconds = 0;  // How many seconds worked today
     uint public currentDayTS;
     uint public lastPaydayTS;
-
+    string public contractName = "Hourly Pay Contract";
 
     ////////////////////////////////
     // Contract Limits and maximums
@@ -161,6 +161,7 @@ contract HourlyPay {
     event Fired(address employeeAddress, uint firedTS);
     event Refunded(uint amount, address whoInitiatedRefund, uint refundTS);
     event ClientWithdrawal(uint amount, uint clientWithdrawalTS);
+    event ContractNameChanged(string contractName);
     
     ////////////////////////////////////////////////
     // Fallback function to fund contract with ETH
@@ -173,8 +174,13 @@ contract HourlyPay {
     ///////////////////////////
     // Main Setters
 
+    function setContractName(string newContractName) external onlyOwner beforeHire {
+        contractName = newContractName;
+        emit ContractNameChanged(contractName);
+    }
+
     function setContractDurationInDays(uint16 newContractDurationInDays) external onlyOwner beforeHire {
-        require(newContractDurationInDays < 365);
+        require(newContractDurationInDays <= 365);
         contractDurationInDays = newContractDurationInDays;
         emit ContractDurationInDaysChanged(contractDurationInDays);
     }
