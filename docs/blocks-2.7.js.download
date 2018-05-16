@@ -365,3 +365,5 @@ function t670_imageHeight(recid) {
         $(this).css("padding-bottom", padding + "%")
     })
 }
+
+function t232_expandtext(recid){$("#rec"+recid).find(".t232__text").toggle()}
