@@ -213,7 +213,8 @@ contract HourlyPay {
     }
     
     function isOvertime() external view returns(bool) {
-        if (workedTodayInSeconds + getWorkSecondsInProgress() > dailyHourLimit * 1 hours) return true;
+        if (workedTodayInSeconds + getWorkSecondsInProgress() > dailyHourLimit * 1 hours) return true; // check if within dailyLimit
+        if ((workedTodayInSeconds + getWorkSecondsInProgress()) * ratePerHourInWei / 1 hours > address(this).balance - earnings) return true; // check if enough balance
         return false;
     }
     
@@ -320,7 +321,14 @@ contract HourlyPay {
         }
         
         uint earned = (newWorkedTodayInSeconds - workedTodayInSeconds) * ratePerHourInWei / 1 hours;
-        earnings += earned; // add new earned ETH to earnings
+        uint newEarnings = earnings + earned; // add new earned ETH to earnings
+        
+        if (newEarnings > address(this).balance) {
+            earned = address(this).balance - earnings;
+            earnings = address(this).balance;
+        } else {
+            earnings = newEarnings;
+        }
         
         emit StoppedWork(now, newWorkedTodayInSeconds - workedTodayInSeconds, earned);
 

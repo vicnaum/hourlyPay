@@ -63,4 +63,5 @@ package-lock.json
 session.session
 
 build/
+docs/1
 conf.js
