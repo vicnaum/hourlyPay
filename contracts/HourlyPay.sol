@@ -295,10 +295,7 @@ contract HourlyPay {
     
     function checkForNewDay() internal {
         if (now - currentDayTS > 1 days) { // new day
-            while (currentDayTS < now) {
-                currentDayTS += 1 days;
-            }
-            currentDayTS -= 1 days;
+            currentDayTS += (now - currentDayTS) - ((now - currentDayTS) % 1 days); // refresh currentDayTS by adding whole days
             workedTodayInSeconds = 0;
             emit NewDay(currentDayTS, uint16 ((beginTimeTS + (contractDurationInDays * 1 days) - currentDayTS) / 1 days));
         }
